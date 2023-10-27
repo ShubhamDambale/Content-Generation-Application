@@ -1,0 +1,134 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Content Generation</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Custom CSS styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to AI Content Generation</h1>
+
+        <form id="text-generation-form">
+            <div class="input-group">
+                <input type="text" class="form-control" id="prompt" name="prompt" placeholder="Enter a Prompt">
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Generate Text</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="result">
+            <p><strong>Generated Text:</strong></p>
+            <p id="generated-text"></p>
+            <p><strong>Sentiment:</strong> <span id="sentiment-result"></span></p>
+            <p><strong>Emotion:</strong> <span id="emotion-result"></span></p>
+        </div>
+
+        <form id="translation-form">
+            <div class="input-group">
+                <input type="text" class="form-control" id="text" name="text" placeholder="Enter Text to Translate">
+                <select class="form-control" id="target-lang" name="target_lang">
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="mr">Marathi</option>
+                    <!-- Add more language options -->
+                </select>
+                <div class="input-group-append">
+                    <button type="submit" class="btn btn-primary">Translate</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="result">
+            <p><strong>Translated Text:</strong></p>
+            <p id="translated-text"></p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('text-generation-form');
+        const generatedText = document.getElementById('generated-text');
+        const sentimentResult = document.getElementById('sentiment-result');
+        const emotionResult = document.getElementById('emotion-result');
+        const translationForm = document.getElementById('translation-form');
+        const translatedText = document.getElementById('translated-text');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const prompt = form.elements.prompt.value;
+            const response = await fetch('/generate_text', {
+                method: 'POST',
+                body: new URLSearchParams({ prompt }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
+
+            const data = await response.json();
+            if (data.response) {
+                generatedText.innerHTML = data.response;
+                sentimentResult.innerHTML = `Sentiment: ${data.sentiment.toFixed(2)}`;
+                emotionResult.innerHTML = `Emotion: ${data.emotion}`;
+            } else {
+                generatedText.innerHTML = 'Error: ' + data.error;
+                sentimentResult.innerHTML = '';
+                emotionResult.innerHTML = '';
+            }
+        });
+
+        translationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const text = translationForm.elements.text.value;
+            const targetLang = translationForm.elements.target_lang.value;
+            const response = await fetch('/translate', {
+                method: 'POST',
+                body: new URLSearchParams({ text, target_lang: targetLang }),
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
+
+            const translationData = await response.json();
+            if (translationData.translated_text) {
+                translatedText.innerHTML = translationData.translated_text;
+            } else {
+                translatedText.innerHTML = 'Translation Error';
+            }
+        });
+    </script>
+</body>
+</html>
